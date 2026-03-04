@@ -1,0 +1,9 @@
+{
+  "doc_id": "ETS_Annual_Report_2024_2025",
+  "origin_type": "mixed",
+  "layout_complexity": "figure_heavy",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "general",
+  "estimated_extraction_cost": "needs_layout_model"
+}

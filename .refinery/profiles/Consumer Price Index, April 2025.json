@@ -1,0 +1,9 @@
+{
+  "doc_id": "Consumer Price Index, April 2025",
+  "origin_type": "native_digital",
+  "layout_complexity": "single_column",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "general",
+  "estimated_extraction_cost": "fast_text_sufficient"
+}

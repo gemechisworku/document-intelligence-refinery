@@ -1,0 +1,9 @@
+{
+  "doc_id": "fta_performance_survey_final_report_2022",
+  "origin_type": "native_digital",
+  "layout_complexity": "table_heavy",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "technical",
+  "estimated_extraction_cost": "needs_layout_model"
+}

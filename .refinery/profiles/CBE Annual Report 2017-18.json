@@ -1,0 +1,9 @@
+{
+  "doc_id": "CBE Annual Report 2017-18",
+  "origin_type": "native_digital",
+  "layout_complexity": "figure_heavy",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "financial",
+  "estimated_extraction_cost": "needs_layout_model"
+}

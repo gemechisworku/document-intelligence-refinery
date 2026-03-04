@@ -1,0 +1,9 @@
+{
+  "doc_id": "CBE ANNUAL REPORT 2023-24",
+  "origin_type": "native_digital",
+  "layout_complexity": "mixed",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "financial",
+  "estimated_extraction_cost": "needs_layout_model"
+}

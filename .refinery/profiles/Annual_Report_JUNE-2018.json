@@ -1,0 +1,9 @@
+{
+  "doc_id": "Annual_Report_JUNE-2018",
+  "origin_type": "native_digital",
+  "layout_complexity": "table_heavy",
+  "language": "en",
+  "language_confidence": 0.9,
+  "domain_hint": "general",
+  "estimated_extraction_cost": "needs_layout_model"
+}

@@ -1,0 +1,21 @@
+# Extraction rules and thresholds (IR-2, FR-2.2)
+# Triage and extraction strategy selection use these values.
+
+extraction:
+  # Strategy A (Fast Text) confidence gate
+  fast_text_min_char_count_per_page: 100   # Below → likely scanned/image-only
+  fast_text_max_image_area_ratio: 0.5      # Above → use Layout or Vision
+  confidence_escalation_threshold: 0.6     # Escalate A→B or B→C if below
+
+# Triage heuristics (aligned with DOMAIN_NOTES)
+triage:
+  # Origin type: scanned vs native
+  scanned_chars_per_page_max: 100
+  scanned_image_ratio_min: 0.3
+  native_chars_per_page_min: 500
+  native_image_ratio_max: 0.5
+  # Layout complexity (heuristic without layout model)
+  figure_heavy_image_ratio_min: 0.4
+  mixed_image_ratio_min: 0.2
+  table_heavy_chars_per_page_min: 1500
+  table_heavy_image_ratio_max: 0.1
