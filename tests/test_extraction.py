@@ -8,9 +8,11 @@ import pytest
 
 from src.agents.extractor import ExtractionRouter
 from src.config import ExtractionConfig, RefineryConfig
+from src.exceptions import ExtractionBudgetExceeded
 from src.models.document_profile import DocumentProfile
 from src.models.extracted_document import ExtractedDocument, LedgerEntry
 from src.strategies.fast_text import FastTextExtractor
+from src.strategies.vision import VisionExtractor
 
 
 @pytest.fixture
@@ -141,3 +143,21 @@ def test_fast_text_extractor_confidence_in_range(
     assert result.strategy_name == "fast_text"
     assert result.document.doc_id == "test"
     assert len(result.document.text_blocks) >= 1
+
+
+def test_vision_budget_cap_halts_when_exceeded(
+    profile_fast_text: DocumentProfile,
+    sample_pdf_native_digital: Path | None,
+    temp_refinery_dir: Path,
+) -> None:
+    """Strategy C raises ExtractionBudgetExceeded when budget cap would be exceeded (active halt)."""
+    if sample_pdf_native_digital is None:
+        pytest.skip("No corpus PDF found")
+    config = RefineryConfig(
+        refinery_dir=temp_refinery_dir,
+        openrouter_api_key="dummy",
+        vision_budget_cap_per_doc=0.0001,
+    )
+    ext = VisionExtractor()
+    with pytest.raises(ExtractionBudgetExceeded, match="cap.*exceeded|Halting"):
+        ext.extract(sample_pdf_native_digital, profile_fast_text, config)
