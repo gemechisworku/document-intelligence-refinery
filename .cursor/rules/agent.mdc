@@ -1,0 +1,123 @@
+---
+alwaysApply: true
+description: How coding agents operate on the Document Intelligence Refinery codebase—specs, workflow, and plan discipline.
+---
+
+# Agent Guide: Document Intelligence Refinery
+
+This rule governs how coding agents work on this codebase. Follow it so that work stays aligned with specs, testable, and understandable by other agents or humans—including agents joining mid-project.
+
+---
+
+## What This Project Is
+
+- **Document Intelligence Refinery**: A production-grade, multi-stage **agentic pipeline** that ingests unstructured documents (PDFs, etc.) and emits **structured, queryable, spatially-indexed knowledge** with full **provenance** (document, page, bbox, content_hash).
+- **Pipeline (ingestion)**: **Triage** → **Structure Extraction** (multi-strategy with confidence-gated escalation) → **Semantic Chunking** → **PageIndex Building**. Then a **Query Interface** (LangGraph agent with pageindex_navigate, semantic_search, structured_query) runs over the ingested artifacts.
+- **Goal**: Support four document classes (native digital reports, scanned legal, mixed technical, table-heavy fiscal), avoid structure collapse / context poverty / provenance blindness, and satisfy the challenge deliverables and Demo Protocol.
+- **Tech**: Python 3.10+, Pydantic v2, pdfplumber/Docling/MinerU, OpenRouter VLM, LangGraph, ChromaDB/FAISS, SQLite. All behavior is **typed** at stage boundaries (no untyped dict handoffs).
+
+If you are new to the project or joining mid-stream: read this rule first, then the specs in the order given under "Specs: Where to Look and When."
+
+---
+
+## Specs: Where to Look and When
+
+All specs live under **`specs/`**. Authority order when anything conflicts: **SRS > _meta > api_contracts > system_architecture > functional_requirements**.
+
+| When you need… | Read this |
+|----------------|-----------|
+| **What** the system must do; verifiable requirements; requirement IDs (FR-x, NFR-x, DR-x, BR-x, DC-x, IR-x) | `specs/system_requirement_spec.md` (SRS) |
+| **How** we build: standards, stack, patterns, layout, testing, security | `specs/_meta.md` |
+| **Exact interfaces**: method names, input/output types, schema fields, config shape, ledger format, exceptions | `specs/api_contracts.md` |
+| **Structure**: components, data flow, strategy selection/escalation, deployment | `specs/system_architecture.md` |
+| **Use cases** and feature drill-down by actor/stage; acceptance-style scenarios | `specs/functional_requirements.md` |
+
+**Before implementing any component:**
+
+1. Confirm the **requirement IDs** (SRS) that the component satisfies.
+2. Use **api_contracts.md** for method signatures, Pydantic field lists, and config/ledger schemas—do not invent new contracts.
+3. Respect **project layout** and **naming** in `_meta.md` (§6); put code in the specified `src/` modules (e.g. `src/agents/triage.py`, `src/strategies/fast_text.py`).
+4. Put **thresholds and rules** in config (e.g. `rubric/extraction_rules.yaml`), not hardcoded in code (IR-2, NFR-3).
+
+**When in doubt:** Prefer the higher-authority spec (SRS over _meta over api_contracts over architecture over functional_requirements).
+
+---
+
+## Implementation Workflow: Plan → Code (with tests) → Review
+
+### 1. Plan
+
+- Before writing code for a feature or component:
+  - Identify which **SRS requirement IDs** the work addresses.
+  - List the **files and public APIs** you will add or change (agents, strategies, models, config).
+  - Note any **dependencies** on other components or artifacts (e.g. ExtractedDocument from ExtractionRouter before ChunkingEngine).
+- If the project maintains an **implementation plan** (e.g. `docs/IMPLEMENTATION_PLAN.md` or a task list), **update it** to reflect the current step and what’s next (see "Mandatory: Implementation Plan Check and Update" below).
+
+### 2. Code (with tests)
+
+- **Implement** according to **api_contracts.md** (signatures, types, schemas) and **_meta.md** (style, layout, config injection).
+- **No untyped dict handoffs** at pipeline stage boundaries; use Pydantic models only (NFR-1).
+- **Add or extend tests** in `tests/` for the code you add:
+  - Unit tests for **Triage** classification and **extraction confidence** scoring are mandatory (DC-3).
+  - Prefer `test_<module>_<behavior>.py` or `test_<class>_<method>_<scenario>.py`; use fixtures (e.g. `conftest.py`) for document paths and config.
+- Run **lint/format** (Ruff) and fix issues before considering the task done.
+
+### 3. Review
+
+- **Self-check**: Does the change satisfy the stated SRS IDs? Do method names, types, and artifact paths match **api_contracts.md**? Are new thresholds or rules in **config**, not in code?
+- If there is a human or automated review process, ensure the **implementation plan** and any task list are updated so the next agent or developer can continue without confusion.
+
+---
+
+## Mandatory: Implementation Plan Check and Update
+
+- The project may keep a single **implementation plan** document (e.g. `docs/IMPLEMENTATION_PLAN.md` or similar) that lists phases, components, and current status. If that file exists, **you must**:
+  1. **Read it** at the start of your work session to understand what’s done and what’s next.
+  2. **Update it** after completing a meaningful chunk of work: mark completed items, adjust "next" steps, and note any blockers or decisions (e.g. "Strategy B implemented with Docling; adapter in `src/strategies/layout.py`").
+- If no implementation plan file exists yet, **create one** when starting non-trivial work: add a short outline of phases (e.g. Phase 0/1/2/3/4 from the challenge), list components and their status (not started / in progress / done), and a "Next" section so the next agent can continue without guessing.
+- This reduces confusion when **multiple agents** or **sessions** work on the project and when someone **joins mid-project**.
+
+---
+
+## Quick Reference
+
+### Spec authority (conflict resolution)
+
+`SRS` > `_meta` > `api_contracts` > `system_architecture` > `functional_requirements`
+
+### Specs location
+
+- `specs/system_requirement_spec.md`
+- `specs/_meta.md`
+- `specs/api_contracts.md`
+- `specs/system_architecture.md`
+- `specs/functional_requirements.md`
+
+### Key source layout (from _meta)
+
+- Models: `src/models/` (DocumentProfile, ExtractedDocument, LDU, PageIndex, ProvenanceChain, BoundingBox)
+- Agents: `src/agents/` (triage, extractor, chunker, indexer, query_agent)
+- Strategies: `src/strategies/` (base, fast_text, layout, vision)
+- Config: `src/config.py`; rules: `rubric/extraction_rules.yaml`
+- Artifacts: `.refinery/profiles/`, `.refinery/pageindex/`, `.refinery/extraction_ledger.jsonl`
+- Tests: `tests/` (mirror `src/` where helpful; `conftest.py` for fixtures)
+
+### Pipeline order (BR-1)
+
+Triage → Extraction (router + strategies, with escalation) → Chunking → PageIndex. Query runs **after** ingestion.
+
+### Requirement ID prefixes (SRS)
+
+- **FR**: Functional requirement
+- **NFR**: Non-functional requirement
+- **DR**: Data requirement
+- **BR**: Behavioral requirement
+- **DC**: Design constraint
+- **IR**: Interface requirement
+
+### Must-haves before calling work "done"
+
+- Code matches **api_contracts** (signatures, types, schemas).
+- New behavior is **covered by tests** where applicable; Triage and extraction confidence tests exist (DC-3).
+- **Config** holds thresholds/rules; **no hardcoded credentials** (IR-2, IR-3).
+- **Implementation plan** (if present) is **updated** with status and next steps.
