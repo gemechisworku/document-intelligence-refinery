@@ -10,3 +10,7 @@
 {"doc_id":"2022_Audited_Financial_Statement_Report","strategy_used":"vision","confidence_score":0.0,"cost_estimate":0.0,"processing_time":0.000039999838918447495,"timestamp_utc":"2026-03-04T19:08:49.452738+00:00","escalated_from":null}
 {"doc_id":"Annual_Report_JUNE-2017","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":101.0598667000886,"timestamp_utc":"2026-03-04T19:10:30.521156+00:00","escalated_from":null}
 {"doc_id":"Annual_Report_JUNE-2018","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":81.61954790004529,"timestamp_utc":"2026-03-04T19:11:52.162773+00:00","escalated_from":null}
+{"doc_id":"Annual_Report_JUNE-2019","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":831.3104361000005,"timestamp_utc":"2026-03-04T19:25:43.491272+00:00","escalated_from":null}
+{"doc_id":"Annual_Report_JUNE-2020","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":82.16554549988359,"timestamp_utc":"2026-03-04T19:27:05.661753+00:00","escalated_from":null}
+{"doc_id":"Annual_Report_JUNE-2021","strategy_used":"fast_text","confidence_score":0.8960386999567669,"cost_estimate":0.0,"processing_time":25.828977199969813,"timestamp_utc":"2026-03-04T19:27:31.495402+00:00","escalated_from":null}
+{"doc_id":"Annual_Report_JUNE-2022","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":219.47278320020996,"timestamp_utc":"2026-03-04T19:31:10.976130+00:00","escalated_from":null}

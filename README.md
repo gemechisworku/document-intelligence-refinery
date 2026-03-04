@@ -39,7 +39,7 @@ document-intelligence-refinery/
 │   ├── IMPLEMENTATION_PLAN.md
 │   └── INTERIM_REPORT.md
 ├── rubric/
-│   └── extraction_rules.yaml # Triage & extraction thresholds (IR-2)
+│   └── extraction_rules.yaml # Triage & extraction thresholds; domain keywords (IR-2)
 ├── data/
 │   └── data/                 # Corpus PDFs
 ├── .refinery/                # Artifacts (created by pipeline)
@@ -85,6 +85,10 @@ document-intelligence-refinery/
 **Pipeline (Phases 0–2):** Triage classifies each PDF (origin type, layout complexity, domain, estimated cost) and writes a profile; the ExtractionRouter selects strategy (A → B → C) from the profile, runs the extractor, escalates on low confidence, and appends every attempt to `extraction_ledger.jsonl`. Strategy A (Fast Text) uses pdfplumber; B uses Docling when available; C (Vision) is a stub.
 
 Details and task lists: [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+
+## Configuration (no code change for thresholds or domain keywords)
+
+All triage thresholds and **domain keyword lists** are in **`rubric/extraction_rules.yaml`**. To add or change which filenames map to which domain (financial, legal, technical, medical, general), edit the `triage.domain_keywords` section only; no code changes required. See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for the full "add a new domain by editing config only" workflow and threshold reference.
 
 ## Quick commands
 

@@ -7,9 +7,10 @@ extraction:
   fast_text_max_image_area_ratio: 0.5      # Above → use Layout or Vision
   confidence_escalation_threshold: 0.6     # Escalate A→B or B→C if below
 
-# Triage heuristics (aligned with DOMAIN_NOTES)
+# Triage: all thresholds and domain keywords (FR-1.x). Edit here only — no code change needed.
+# To add or change domain keywords: edit domain_keywords below (first match wins; general = fallback).
 triage:
-  # Origin type: scanned vs native
+  # Origin type: scanned vs native vs mixed vs form_fillable
   scanned_chars_per_page_max: 100
   scanned_image_ratio_min: 0.3
   native_chars_per_page_min: 500
@@ -19,3 +20,29 @@ triage:
   mixed_image_ratio_min: 0.2
   table_heavy_chars_per_page_min: 1500
   table_heavy_image_ratio_max: 0.1
+  # Domain hint: keywords matched against filename (case-insensitive). Order = priority.
+  domain_keywords:
+    financial:
+      - annual report
+      - financial
+      - audit
+      - revenue
+      - expenditure
+      - tax
+      - statement
+    legal:
+      - audit
+      - legal
+      - regulation
+      - compliance
+    technical:
+      - survey
+      - assessment
+      - fta
+      - performance
+      - technical
+    medical:
+      - medical
+      - health
+      - clinical
+    general: []   # fallback when no other domain matches
