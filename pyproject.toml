@@ -8,6 +8,7 @@ dependencies = [
     "pdfplumber>=0.11.0",
     "docling>=2.0.0",
     "pydantic>=2.0",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -20,9 +21,8 @@ dev = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-# Package layout when src/ is added (Phase 1+):
-# [tool.hatch.build.targets.wheel]
-# packages = ["src"]
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
 
 [tool.uv]
 dev-dependencies = [
