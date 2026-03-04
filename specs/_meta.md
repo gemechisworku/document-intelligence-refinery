@@ -24,8 +24,8 @@ Conflicts are resolved in this order: SRS > _meta > api_contracts > system_archi
 ### 2.1 Language & Runtime
 
 - **Language**: Python 3.10+ (type hints required on all public APIs and pipeline stage boundaries).
-- **Package management**: [PEP 621](https://peps.python.org/pep-0621/) via `pyproject.toml`; dependencies shall be locked (e.g., `uv lock` or `pip-tools`).
-- **Virtual environments**: Use project-local venv; document activation in README.
+- **Package management**: [uv](https://docs.astral.sh/uv/) with [PEP 621](https://peps.python.org/pep-0621/) `pyproject.toml`. Use `uv sync` to create venv and install locked dependencies; use `uv lock` to update the lockfile. Do not use `pip install` for project dependencies.
+- **Virtual environments**: uv creates and uses a project-local `.venv`; document `uv sync` and `uv run` in README.
 
 ### 2.2 Code Quality & Style
 

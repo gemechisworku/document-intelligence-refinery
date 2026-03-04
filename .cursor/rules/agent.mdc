@@ -93,6 +93,10 @@ All specs live under **`specs/`**. Authority order when anything conflicts: **SR
 - `specs/system_architecture.md`
 - `specs/functional_requirements.md`
 
+### Package management (uv)
+
+- Use **uv** for dependencies: `uv sync` to install, `uv run python script.py` to run with project env. Do not use `pip install` for project deps (_meta §2.1).
+
 ### Key source layout (from _meta)
 
 - Models: `src/models/` (DocumentProfile, ExtractedDocument, LDU, PageIndex, ProvenanceChain, BoundingBox)
