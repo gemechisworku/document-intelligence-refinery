@@ -10,14 +10,23 @@ from src.models.extracted_document import (
     Table,
     TextBlock,
 )
+from src.models.ldu import ChunkRelationship, ChunkType, LDU
+from src.models.page_index import PageIndexNode
+from src.models.provenance import ProvenanceChain, ProvenanceCitation
 
 __all__ = [
     "BoundingBox",
+    "ChunkRelationship",
+    "ChunkType",
     "DocumentProfile",
     "ExtractedDocument",
     "ExtractionResult",
     "Figure",
+    "LDU",
     "LedgerEntry",
+    "PageIndexNode",
+    "ProvenanceChain",
+    "ProvenanceCitation",
     "ReadingOrderItem",
     "Table",
     "TextBlock",

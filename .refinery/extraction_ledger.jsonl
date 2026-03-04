@@ -9,3 +9,4 @@
 {"doc_id":"2021_Audited_Financial_Statement_Report","strategy_used":"vision","confidence_score":0.0,"cost_estimate":0.0,"processing_time":0.0000521000474691391,"timestamp_utc":"2026-03-04T19:08:49.446338+00:00","escalated_from":null}
 {"doc_id":"2022_Audited_Financial_Statement_Report","strategy_used":"vision","confidence_score":0.0,"cost_estimate":0.0,"processing_time":0.000039999838918447495,"timestamp_utc":"2026-03-04T19:08:49.452738+00:00","escalated_from":null}
 {"doc_id":"Annual_Report_JUNE-2017","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":101.0598667000886,"timestamp_utc":"2026-03-04T19:10:30.521156+00:00","escalated_from":null}
+{"doc_id":"Annual_Report_JUNE-2018","strategy_used":"layout","confidence_score":0.85,"cost_estimate":0.0,"processing_time":81.61954790004529,"timestamp_utc":"2026-03-04T19:11:52.162773+00:00","escalated_from":null}
