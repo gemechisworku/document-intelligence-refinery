@@ -150,6 +150,14 @@ class RefineryConfig(BaseModel):
         """Return path to .refinery/extraction_ledger.jsonl."""
         return Path(self.refinery_dir) / "extraction_ledger.jsonl"
 
+    def get_pageindex_dir(self) -> Path:
+        """Return path to .refinery/pageindex/."""
+        return Path(self.refinery_dir) / "pageindex"
+
+    def get_pageindex_path(self, doc_id: str) -> Path:
+        """Return path to .refinery/pageindex/{doc_id}.json."""
+        return self.get_pageindex_dir() / f"{doc_id}.json"
+
 
 def load_config(
     refinery_dir: Path | str | None = None,
