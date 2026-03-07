@@ -124,6 +124,70 @@ def _generate_summary_llm(
     return _generate_summary_fallback(title, texts)
 
 
+def _extract_entities_fallback(texts: list[str]) -> list[str]:
+    """Fallback entity extraction (Regex for capitalized phrases/acronyms)."""
+    text = " ".join(t.strip() for t in texts[:10])
+    # Very basic heuristic for Proper Nouns and Acronyms
+    matches = re.finditer(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b|\b[A-Z]{2,}\b", text)
+    entities = {}
+    for m in matches:
+        ent = m.group(0).strip()
+        if len(ent) > 2 and ent.lower() not in {"the", "and", "this", "that"}:
+            entities[ent] = entities.get(ent, 0) + 1
+    # Sort by frequency
+    sorted_ents = sorted(entities.keys(), key=lambda k: entities[k], reverse=True)
+    return sorted_ents[:5]
+
+
+def _extract_entities_llm(
+    title: str,
+    texts: list[str],
+    config: RefineryConfig,
+) -> list[str]:
+    """Generate key entities using LLM via OpenRouter."""
+    try:
+        import requests
+
+        api_key = config.openrouter_api_key
+        model = config.openrouter_model or "google/gemini-flash-1.5"
+        if not api_key:
+            return _extract_entities_fallback(texts)
+
+        combined = " ".join(t.strip() for t in texts[:10] if t.strip())[:1500]
+        prompt = (
+            f"Extract up to 5 key entities (organizations, people, metrics, concepts, dates) "
+            f"from the document section titled '{title}'.\n"
+            f"Respond ONLY with a valid JSON array of strings. Example: [\"Entity 1\", \"Entity 2\"]\n\n"
+            f"Content:\n{combined}"
+        )
+
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 150,
+            },
+            timeout=30,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            content = data["choices"][0]["message"]["content"].strip()
+            # Attempt to extract JSON array
+            match = re.search(r"\[.*\]", content, re.DOTALL)
+            if match:
+                entities = json.loads(match.group(0))
+                if isinstance(entities, list):
+                    return [str(e) for e in entities][:5]
+    except Exception:
+        pass
+    return _extract_entities_fallback(texts)
+
+
 # -----------------------------------------------------------------------------
 # Section data (internal)
 # -----------------------------------------------------------------------------
@@ -143,11 +207,13 @@ class _SectionData:
         self.children: list[_SectionData] = []
 
     def to_node(self, config: RefineryConfig, use_llm: bool = False) -> PageIndexNode:
-        """Convert to PageIndexNode with summary."""
+        """Convert to PageIndexNode with summary and entities."""
         if use_llm and config.openrouter_api_key:
             summary = _generate_summary_llm(self.title, self.texts, config)
+            entities = _extract_entities_llm(self.title, self.texts, config)
         else:
             summary = _generate_summary_fallback(self.title, self.texts)
+            entities = _extract_entities_fallback(self.texts)
 
         data_types = _detect_data_types(self.texts, self.has_tables, self.has_figures)
         child_nodes = [c.to_node(config, use_llm=use_llm) for c in self.children]
@@ -158,6 +224,7 @@ class _SectionData:
             page_end=self.page_end,
             child_sections=child_nodes,
             summary=summary,
+            key_entities=entities if entities else None,
             data_types_present=data_types,
             node_id=str(uuid.uuid4())[:8],
         )
@@ -361,25 +428,9 @@ class PageIndexBuilder:
     ) -> list[PageIndexNode]:
         """
         Given a topic string, return top-K most relevant sections (FR-4.2).
-        Uses keyword overlap scoring against title, summary, and data_types.
+        Uses TF-IDF via scikit-learn for sophisticated relevance scoring,
+        with a fallback to enhanced keyword overlap.
         """
-        topic_words = set(topic.lower().split())
-
-        def _score_node(node: PageIndexNode) -> float:
-            score = 0.0
-            title_words = set(node.title.lower().split())
-            score += len(topic_words & title_words) * 3.0
-
-            if node.summary:
-                summary_words = set(node.summary.lower().split())
-                score += len(topic_words & summary_words) * 1.0
-
-            if node.data_types_present:
-                dt_words = set(" ".join(node.data_types_present).lower().split())
-                score += len(topic_words & dt_words) * 2.0
-
-            return score
-
         def _collect_all(node: PageIndexNode) -> list[PageIndexNode]:
             nodes = [node]
             for child in node.child_sections:
@@ -387,10 +438,61 @@ class PageIndexBuilder:
             return nodes
 
         all_nodes = _collect_all(root)
-        scored = [(n, _score_node(n)) for n in all_nodes]
-        scored.sort(key=lambda x: x[1], reverse=True)
+        if not all_nodes:
+            return []
 
-        return [n for n, s in scored[:top_k] if s > 0] or scored[:top_k] and [scored[0][0]]
+        # Prepare corpus for TF-IDF ranking
+        corpus = []
+        for n in all_nodes:
+            parts = [n.title * 3]  # Weight title heavily
+            if n.summary:
+                parts.append(n.summary)
+            if n.key_entities:
+                parts.append(" ".join(n.key_entities) * 2)  # Weight entities heavily
+            if n.data_types_present:
+                parts.append(" ".join(n.data_types_present))
+            corpus.append(" ".join(parts).lower())
+
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.metrics.pairwise import cosine_similarity
+            
+            vectorizer = TfidfVectorizer(stop_words='english')
+            tfidf_matrix = vectorizer.fit_transform(corpus)
+            query_vec = vectorizer.transform([topic.lower()])
+            
+            scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+            
+            scored = [(node, score) for node, score in zip(all_nodes, scores) if score > 0]
+            scored.sort(key=lambda x: x[1], reverse=True)
+            return [n for n, s in scored[:top_k]]
+            
+        except ImportError:
+            # Fallback to keyword overlap if scikit-learn isn't available
+            topic_words = set(topic.lower().split())
+
+            def _score_node(node: PageIndexNode) -> float:
+                score = 0.0
+                title_words = set(node.title.lower().split())
+                score += len(topic_words & title_words) * 3.0
+
+                if node.summary:
+                    summary_words = set(node.summary.lower().split())
+                    score += len(topic_words & summary_words) * 1.0
+
+                if node.data_types_present:
+                    dt_words = set(" ".join(node.data_types_present).lower().split())
+                    score += len(topic_words & dt_words) * 2.0
+                    
+                if node.key_entities:
+                    ent_words = set(" ".join(node.key_entities).lower().split())
+                    score += len(topic_words & ent_words) * 2.0
+
+                return score
+
+            scored = [(n, _score_node(n)) for n in all_nodes]
+            scored.sort(key=lambda x: x[1], reverse=True)
+            return [n for n, s in scored[:top_k] if s > 0] or (scored[:top_k] and [scored[0][0]]) or []
 
     @staticmethod
     def load_pageindex(doc_id: str, config: RefineryConfig) -> PageIndexNode | None:
