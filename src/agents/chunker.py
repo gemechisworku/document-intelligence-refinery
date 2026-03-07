@@ -486,16 +486,19 @@ class ChunkingEngine:
                 collection = self._vector_store
                 ids = [f"{doc_id}_{ldu.content_hash}" for ldu in ldus]
                 documents = [ldu.content for ldu in ldus]
-                metadatas = [
-                    {
+                metadatas = []
+                for ldu in ldus:
+                    meta = {
                         "doc_id": ldu.doc_id,
                         "chunk_type": ldu.chunk_type,
                         "page_refs": ",".join(str(p) for p in ldu.page_refs),
                         "parent_section": ldu.parent_section or "",
                         "content_hash": ldu.content_hash,
                     }
-                    for ldu in ldus
-                ]
+                    if ldu.bounding_box:
+                        meta["bbox"] = ldu.bounding_box.model_dump_json()
+                    metadatas.append(meta)
+
                 collection.upsert(
                     ids=ids,
                     documents=documents,

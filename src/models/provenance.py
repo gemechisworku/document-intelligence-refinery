@@ -48,3 +48,27 @@ class ProvenanceChain(BaseModel):
         default_factory=list,
         description="Ordered list (FR-5.2); by relevance or document order.",
     )
+
+
+# -----------------------------------------------------------------------------
+# Query Responses
+# -----------------------------------------------------------------------------
+
+
+class QueryResponse(BaseModel):
+    """Response returned by the Query Agent."""
+
+    answer: str = Field(description="The natural language answer.")
+    provenance_chain: ProvenanceChain = Field(
+        description="Chain of citations backing up the answer."
+    )
+
+
+class AuditResult(BaseModel):
+    """Result of claim verification (Audit Mode)."""
+
+    verified: bool = Field(description="True if the claim is supported by documents, else False.")
+    citation: ProvenanceCitation | None = Field(
+        default=None, description="The citation supporting or refuting the claim."
+    )
+    message: str = Field(description="Explanation of the audit result (e.g., 'not found / unverifiable').")
